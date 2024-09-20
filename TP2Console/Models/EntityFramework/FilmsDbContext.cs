@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace TP2Console.Models.EntityFramework;
 
@@ -23,9 +24,12 @@ public partial class FilmsDbContext : DbContext
 
     public virtual DbSet<Utilisateur> Utilisateurs { get; set; }
 
+    public static readonly ILoggerFactory MyLoggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseNpgsql("Server=localhost;port=5432;Database=FilmsDB; uid=postgres;password=postgres;");
+        => optionsBuilder.UseLoggerFactory(MyLoggerFactory)
+                            .EnableSensitiveDataLogging()
+                            .UseNpgsql("Server=localhost;port=5432;Database=FilmsDB; uid=postgres;password=postgres;")
+                            .UseLazyLoadingProxies();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -33,22 +37,11 @@ public partial class FilmsDbContext : DbContext
         {
             entity.HasKey(e => new { e.Idfilm, e.Idutilisateur }).HasName("pk_avis");
 
-            entity.ToTable("avis");
-
-            entity.Property(e => e.Idfilm).HasColumnName("idfilm");
-            entity.Property(e => e.Idutilisateur).HasColumnName("idutilisateur");
-            entity.Property(e => e.Commentaire)
-                .HasMaxLength(1000)
-                .HasColumnName("commentaire");
-            entity.Property(e => e.Note).HasColumnName("note");
-
             entity.HasOne(d => d.IdfilmNavigation).WithMany(p => p.Avis)
-                .HasForeignKey(d => d.Idfilm)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("fk_avis_film");
 
             entity.HasOne(d => d.IdutilisateurNavigation).WithMany(p => p.Avis)
-                .HasForeignKey(d => d.Idutilisateur)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("fk_avis_utilisateur");
         });
@@ -56,31 +49,13 @@ public partial class FilmsDbContext : DbContext
         modelBuilder.Entity<Categorie>(entity =>
         {
             entity.HasKey(e => e.Idcategorie).HasName("pk_categorie");
-
-            entity.ToTable("categorie");
-
-            entity.Property(e => e.Idcategorie).HasColumnName("idcategorie");
-            entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.Nom)
-                .HasMaxLength(50)
-                .HasColumnName("nom");
         });
 
         modelBuilder.Entity<Film>(entity =>
         {
             entity.HasKey(e => e.Idfilm).HasName("pk_film");
 
-            entity.ToTable("film");
-
-            entity.Property(e => e.Idfilm).HasColumnName("idfilm");
-            entity.Property(e => e.Description).HasColumnName("description");
-            entity.Property(e => e.Idcategorie).HasColumnName("idcategorie");
-            entity.Property(e => e.Nom)
-                .HasMaxLength(50)
-                .HasColumnName("nom");
-
             entity.HasOne(d => d.IdcategorieNavigation).WithMany(p => p.Films)
-                .HasForeignKey(d => d.Idcategorie)
                 .OnDelete(DeleteBehavior.Restrict)
                 .HasConstraintName("fk_film_categorie");
         });
@@ -88,19 +63,6 @@ public partial class FilmsDbContext : DbContext
         modelBuilder.Entity<Utilisateur>(entity =>
         {
             entity.HasKey(e => e.Idutilisateur).HasName("pk_utilisateur");
-
-            entity.ToTable("utilisateur");
-
-            entity.Property(e => e.Idutilisateur).HasColumnName("idutilisateur");
-            entity.Property(e => e.Email)
-                .HasMaxLength(100)
-                .HasColumnName("email");
-            entity.Property(e => e.Login)
-                .HasMaxLength(50)
-                .HasColumnName("login");
-            entity.Property(e => e.Pwd)
-                .HasMaxLength(64)
-                .HasColumnName("pwd");
         });
 
         OnModelCreatingPartial(modelBuilder);
