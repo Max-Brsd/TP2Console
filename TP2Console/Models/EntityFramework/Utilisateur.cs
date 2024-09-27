@@ -25,6 +25,6 @@ public partial class Utilisateur
     [StringLength(64)]
     public string Pwd { get; set; } = null!;
 
-    [InverseProperty("IdutilisateurNavigation")]
+    [InverseProperty(nameof(Avi.IdutilisateurNavigation))]
     public virtual ICollection<Avi> Avis { get; set; } = new List<Avi>();
 }

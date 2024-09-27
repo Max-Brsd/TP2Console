@@ -21,22 +21,29 @@ public partial class Categorie
     [Column("description")]
     public string? Description { get; set; }
 
-    [InverseProperty("IdcategorieNavigation")]
-    //public virtual ICollection<Film> Films { get; set; } = new List<Film>();
-    private ICollection<Film> films;
     [InverseProperty(nameof(Film.IdcategorieNavigation))]
-    public virtual ICollection<Film> Films
-    {
-        get
+    public virtual ICollection<Film> Films { get; set; } = new List<Film>();
+
+    /*[InverseProperty(nameof(Film.IdcategorieNavigation))]
+    private ICollection<Film> _films;
+
+        [InverseProperty(nameof(Film.IdcategorieNavigation))]
+        public virtual ICollection<Film> Films
         {
-            return _lazyLoader.Load(this, ref films);
+            get
+            {
+                return _lazyLoader?.Load(this, ref _films) ?? _films;
+            }
+            set
+            {
+                _films = value;
+            }
         }
-        set { films = value; }
-    }
+    
 
     private ILazyLoader _lazyLoader;
     public Categorie(ILazyLoader lazyLoader)
     {
         _lazyLoader = lazyLoader;
-    }
+    }*/
 }
